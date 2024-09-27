@@ -31,4 +31,11 @@ ${h('img', { src: avatarUrl })}
 婚姻状态: ${user.Married ? '已婚' : '未婚'}
 ${user.Married ? '配偶: ' + (Spouse.card ? Spouse.card : Spouse.nickname) : ''}`
     }
+
+
+    // 设置权限
+    static async SetAuthority(ctx: Context, qqnum: string, authority: number) {
+        let { aid } = (await ctx.database.get('binding', { pid: qqnum }))[0]
+        ctx.database.set('user', aid, { authority: authority })
+    }
 }

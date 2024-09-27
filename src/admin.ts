@@ -1,6 +1,7 @@
 import { Context, h, Schema, sleep } from 'koishi'
 import { IConfig } from './Interfaces';
 import { randomInt } from 'crypto'
+import { CPolModel } from './model';
 
 const managerAhority = {
     '管理员': 4,
@@ -18,11 +19,11 @@ export function AdminCmd(ctx: Context, config: IConfig) {
     ctx.command('admin', '群管理工具').subcommand('添加超管 <qq:user>', '如：添加超管 @user(前需要空格)', { authority: managerAhority.超级管理员, checkArgCount: true }).action(async ({ session }, qq) => {
         const [platform, qqnum] = qq.split(':')
 
-        let { aid } = (await ctx.database.get('binding', { pid: qqnum }))[0]
+        // let { aid } = (await ctx.database.get('binding', { pid: qqnum }))[0]
+        // ctx.database.set('user', aid, { authority: config.setGroupAdmin })
+        CPolModel.SetAuthority(ctx, qqnum, config.setGroupAdmin)
 
-        ctx.database.set('user', aid, { authority: config.setGroupAdmin })
-
-        session.send(`${h('at', { qq: qqnum })}被设置为机器人管理员`)
+        session.send(`${h('at', { id: qqnum })}被设置为机器人管理员`)
     })
 
     // 取消机器人管理
@@ -33,7 +34,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
 
         ctx.database.set('user', aid, { authority: 1 })
 
-        session.send(`${h('at', { qq: qqnum })}被取消机器人管理员`)
+        session.send(`${h('at', { id: qqnum })}被取消机器人管理员`)
     })
 
 
@@ -45,7 +46,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
             qqnum,
             true,
         )
-        session.send(`${h('at', { qq: qqnum })} 升为了管理员~`)
+        session.send(`${h('at', { id: qqnum })} 升为了管理员~`)
 
     })
 
@@ -57,7 +58,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
             qqnum,
             false,
         )
-        session.send(`${h('at', { qq: qqnum })} 取消了管理~`)
+        session.send(`${h('at', { id: qqnum })} 取消了管理~`)
     })
 
     // 设置禁言
@@ -88,7 +89,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
             duration,
         )
 
-        session.send(`${h('at', { qq: qqnum })} 被禁用了~`)
+        session.send(`${h('at', { id: qqnum })} 被禁用了~`)
 
     })
 
@@ -100,7 +101,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
             qqnum,
             0, // 要禁言的时间（秒）
         )
-        session.send(`${h('at', { qq: qqnum })} 已从小黑屋释放成功~`)
+        session.send(`${h('at', { id: qqnum })} 已从小黑屋释放成功~`)
     })
 
     // 设置群组名片
@@ -111,7 +112,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
             qqnum,
             card,
         )
-        session.send(`${h('at', { qq: qqnum })} 设置了名片为 ${card}`)
+        session.send(`${h('at', { id: qqnum })} 设置了名片为 ${card}`)
     })
 
     // 踢出
@@ -124,7 +125,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
         )
 
         // return `${nickname} 被踢出群了~`;
-        session.send(`${h('at', { qq: qqnum })} 被踢出群了~`)
+        session.send(`${h('at', { id: qqnum })} 被踢出群了~`)
     })
 
     // 设置精华消息
@@ -169,7 +170,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
         let nowIntegral = data[0].integral - integral
         await ctx.database.set('cpol_player_list', qqnum, { integral: nowIntegral })
 
-        session.send(`${h('at', { qq: qqnum })} 被扣除了 ${integral} 积分，现有积分 ${nowIntegral}`)
+        session.send(`${h('at', { id: qqnum })} 被扣除了 ${integral} 积分，现有积分 ${nowIntegral}`)
     })
 
     // 加积分
@@ -180,7 +181,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
         let nowIntegral = data[0].integral + integral
         await ctx.database.set('cpol_player_list', qqnum, { integral: nowIntegral })
 
-        session.send(`${h('at', { qq: qqnum })} 被奖励了 ${integral} 积分，现有积分 ${nowIntegral}`)
+        session.send(`${h('at', { id: qqnum })} 被奖励了 ${integral} 积分，现有积分 ${nowIntegral}`)
     })
 
     //#endregion
@@ -200,7 +201,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
             title,
             -1
         )
-        session.send(`${h('at', { qq: session.userId })} 设置了头衔为 ${title}`)
+        session.send(`${h('at', { id: session.userId })} 设置了头衔为 ${title}`)
     })
 
 

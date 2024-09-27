@@ -4,8 +4,14 @@ export interface IConfig {
     setGroupAdmin: number
     SigninMaxIntegral: number
     SigninMinIntegral: number
-    FackIntegral: number
     EnableGroup: string[]
+    DefaultIntegral: number
+    RandomChatRewards: boolean
+    RandomChatRewardsMinIntegral: number
+    RandomChatRewardsMaxIntegral: number
+
+    Fack: boolean
+    FackIntegral: number
 }
 
 

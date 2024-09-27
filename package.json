@@ -4,15 +4,28 @@
   "version": "0.0.1",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
+  "contributors": [
+    "小莫 <xm@aoe.top>"
+  ],
   "files": [
     "lib",
     "dist"
   ],
+  "homepage": "https://github.com/3DMXM/koishi-plugin-cpol",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/3DMXM/koishi-plugin-cpol"
+  },
   "license": "MIT",
   "keywords": [
     "chatbot",
     "koishi",
-    "plugin"
+    "plugin",
+    "cpol",
+    "tools",
+    "game",
+    "meme",
+    "cosplay"
   ],
   "peerDependencies": {
     "koishi": "^4.18.0"

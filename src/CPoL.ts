@@ -28,7 +28,7 @@ export function CPoLCmd(ctx: Context, config: IConfig) {
             id: parseInt(session.userId),
             guildId: parseInt(session.guildId),
             QQ: parseInt(session.userId),
-            integral: 200,
+            integral: config.DefaultIntegral,
             Game: game,
             Name: name,
             authority: 1,
@@ -105,54 +105,55 @@ export function CPoLCmd(ctx: Context, config: IConfig) {
 
 
     // 草群友
-    ctx.command('cpol', '语 C 角色管理').subcommand('草群友', '如：草群友', { authority: 1, checkArgCount: true }).action(async ({ session }) => {
+    if (config.Fack) {
+        ctx.command('cpol', '语 C 角色管理').subcommand('草群友', '如：草群友', { authority: 1, checkArgCount: true }).action(async ({ session }) => {
 
-        let me = await ctx.database.get('cpol_player_list', session.userId)
+            let me = await ctx.database.get('cpol_player_list', session.userId)
 
-        if (me.length == 0) return `你当前未绑定角色`
+            if (me.length == 0) return `你当前未绑定角色`
 
-        if (me[0].integral < config.FackIntegral) {
-            return `草群友需要消耗 ${config.FackIntegral}积分, 你当前有 ${me[0].integral}, 积分不足~`
-        }
+            if (me[0].integral < config.FackIntegral) {
+                return `草群友需要消耗 ${config.FackIntegral}积分, 你当前有 ${me[0].integral}, 积分不足~`
+            }
 
-        let integral = me[0].integral - config.FackIntegral
-        if (integral < 0) integral = 0
-
-
-        await ctx.database.set('cpol_player_list', session.userId, { integral: integral })
+            let integral = me[0].integral - config.FackIntegral
+            if (integral < 0) integral = 0
 
 
-        let userlist = await ctx.database.get('cpol_player_list', {
-            id: { $ne: parseInt(session.userId) },
+            await ctx.database.set('cpol_player_list', session.userId, { integral: integral })
+
+
+            let userlist = await ctx.database.get('cpol_player_list', {
+                id: { $ne: parseInt(session.userId) },
+            })
+
+            // 从 userlist 中随机获取一位
+            let random = Math.floor(Math.random() * userlist.length)
+            let you = userlist[random]
+
+
+            let msg = ``
+
+            if (me[0].gender == 1) {
+                if (you.gender == 1) {
+                    msg = `刚刚 ${h('at', { id: me[0].QQ })} 和 ${h('at', { id: you.QQ })} 在床上展开了激烈的剑术运动，双方不相上下`
+                }
+                if (you.gender == 2) {
+                    msg = `刚刚 ${h('at', { id: you.QQ })} 被 ${h('at', { id: me[0].QQ })} 按在床上，进行了深入交流，对方快要被征服了`
+                }
+            }
+            if (me[0].gender == 2) {
+                if (you.gender == 1) {
+                    msg = `刚刚 ${h('at', { id: you.QQ })} 被 ${h('at', { id: me[0].QQ })} 推倒在床上，榨取了精华，对方都虚脱了`
+                }
+                if (you.gender == 2) {
+                    // 刚刚某某和某某在床上进行了魔学交流。双方都得到了升华
+                    msg = `刚刚 ${h('at', { id: me[0].QQ })} 和 ${h('at', { id: you.QQ })} 在床上进行了魔学交流，双方都得到了升华`
+                }
+            }
+            session.send(`${msg}\n本次操作消耗 ${config.FackIntegral} 积分`)
         })
-
-        // 从 userlist 中随机获取一位
-        let random = Math.floor(Math.random() * userlist.length)
-        let you = userlist[random]
-
-
-        let msg = ``
-
-        if (me[0].gender == 1) {
-            if (you.gender == 1) {
-                msg = `刚刚 ${h('at', { id: me[0].QQ })} 和 ${h('at', { id: you.QQ })} 在床上展开了激烈的剑术运动，双方不相上下`
-            }
-            if (you.gender == 2) {
-                msg = `刚刚 ${h('at', { id: you.QQ })} 被 ${h('at', { id: me[0].QQ })} 按在床上，进行了深入交流，对方快要被征服了`
-            }
-        }
-        if (me[0].gender == 2) {
-            if (you.gender == 1) {
-                msg = `刚刚 ${h('at', { id: you.QQ })} 被 ${h('at', { id: me[0].QQ })} 推倒在床上，榨取了精华，对方都虚脱了`
-            }
-            if (you.gender == 2) {
-                // 刚刚某某和某某在床上进行了魔学交流。双方都得到了升华
-                msg = `刚刚 ${h('at', { id: me[0].QQ })} 和 ${h('at', { id: you.QQ })} 在床上进行了魔学交流，双方都得到了升华`
-            }
-        }
-        session.send(`${msg}\n本次操作消耗 ${config.FackIntegral} 积分`)
-    })
-
+    }
 
     // 求婚 
     ctx.command('cpol', '语 C 角色管理').subcommand('求婚 <qq:user>', '如：求婚 @user',).action(async ({ session }, qq) => {
@@ -213,7 +214,7 @@ ${h('at', { id: you[0].QQ })}是否愿意与${h('at', { id: me[0].QQ })}百合�
 
                 // 当前时间戳 
                 let time = new Date()
-                console.log(time);
+                // console.log(time);
 
                 ctx.database.set('cpol_player_list', me[0].id, { Married: true, Spouse: you[0].id, MarriedTime: time })
                 ctx.database.set('cpol_player_list', you[0].id, { Married: true, Spouse: me[0].id, MarriedTime: time })
@@ -281,8 +282,8 @@ ${h('at', { id: you[0].QQ })}是否愿意与${h('at', { id: me[0].QQ })}百合�
 
         session.send(`${h('at', { id: me[0].QQ })}和${h('at', { id: you[0].QQ })} 的结婚证书
         ${h('img', { src: meavatar })} ${h('img', { src: youavatar })}
-        [结婚时间]: ${MarriedTime.getFullYear()}/${MarriedTime.getMonth() + 1}/${MarriedTime.getDate()} ${MarriedTime.getHours()}:${MarriedTime.getMinutes()}
-        [结婚天数]: ${days}天
+[结婚时间]: ${MarriedTime.getFullYear()}/${MarriedTime.getMonth() + 1}/${MarriedTime.getDate()} ${MarriedTime.getHours()}:${MarriedTime.getMinutes()}
+[结婚天数]: ${days}天
         `)
     })
 }
