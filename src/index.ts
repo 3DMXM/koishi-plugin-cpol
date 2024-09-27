@@ -65,7 +65,6 @@ export function apply(ctx: Context, config: IConfig) {
                 CPolModel.SetAuthority(ctx, session.userId, 255)
             }
 
-
             let player = await ctx.database.get('cpol_player_list', [session.userId])
             if (player.length > 0) {
                 // 如果用户已经绑定了角色 
@@ -76,7 +75,6 @@ export function apply(ctx: Context, config: IConfig) {
                 }
 
                 // 随机聊天奖励（在平时的聊天中，可以15%的几率为上一个说话的群友随机触发1～10点的积分奖励）
-                // 一个 15% 会触发的概率
                 if (Math.random() < 0.15 && config.RandomChatRewards) {
                     let num = randomInt(config.RandomChatRewardsMinIntegral, config.RandomChatRewardsMaxIntegral)
                     let new_integral = player[0].integral + num

@@ -184,27 +184,18 @@ export function AdminCmd(ctx: Context, config: IConfig) {
         session.send(`${h('at', { id: qqnum })} 被奖励了 ${integral} 积分，现有积分 ${nowIntegral}`)
     })
 
-    //#endregion
+    // 获取玩家列表
+    ctx.command('admin', '群管理工具').subcommand('玩家列表', '获取玩家列表', { authority: managerAhority.管理员 }).action(async ({ session }) => {
+        let playerList = await ctx.database.get('cpol_player_list', {})
+        if (playerList.length == 0) return '暂无玩家'
 
-    //#region 设置自己
-
-    // 设置群组头衔
-    ctx.command('admin', '群管理工具').subcommand('申请头衔 <title>', '申请头衔 新人').action(async ({ session }, title) => {
-
-        if (new TextEncoder().encode(title).length > 18) { // 长度限制18
-            session.send('头衔太长啦！')
-
-        }
-        session.onebot.setGroupSpecialTitle(
-            session.guildId,
-            session.userId,
-            title,
-            -1
-        )
-        session.send(`${h('at', { id: session.userId })} 设置了头衔为 ${title}`)
+        let str = ''
+        playerList.forEach((item) => {
+            str += `名称:${item.Name} | 积分: ${item.integral}\n`
+        })
+        session.send(str)
     })
 
-
-
     //#endregion
+
 }
