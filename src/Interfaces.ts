@@ -9,6 +9,7 @@ export interface IConfig {
     RandomChatRewards: boolean
     RandomChatRewardsMinIntegral: number
     RandomChatRewardsMaxIntegral: number
+    RandomChatProbability: number
 
     Fack: boolean
     FackIntegral: number
@@ -29,4 +30,6 @@ export interface ICPoL {
     Spouse?: number      // 配偶
     authority: number   // 权限
     SigninTime: Date  // 签到时间
+    Fack: number         // 草次数
+    BeFack: number       // 被草次数
 }

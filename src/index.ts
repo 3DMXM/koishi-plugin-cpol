@@ -22,6 +22,7 @@ export const Config: Schema<IConfig> = Schema.object({
     SigninMaxIntegral: Schema.number().default(10).description("签到最大积分"),
     SigninMinIntegral: Schema.number().default(1).description("签到最小积分"),
     RandomChatRewards: Schema.boolean().default(true).description("是否开启随机聊天奖励"),
+    RandomChatProbability: Schema.number().default(0.15).description("奖励随机聊天概率"),
     RandomChatRewardsMinIntegral: Schema.number().default(1).description("随机聊天奖励最小值"),
     RandomChatRewardsMaxIntegral: Schema.number().default(10).description("随机聊天奖励最大值"),
 
@@ -54,6 +55,14 @@ export function apply(ctx: Context, config: IConfig) {
         gender: 'integer',
         SigninTime: 'date',
         MarriedTime: 'timestamp',
+        Fack: {
+            type: 'integer',
+            initial: 0
+        },
+        BeFack: {
+            type: 'integer',
+            initial: 0
+        }
     })
 
     ctx.middleware(async (session, next) => {
@@ -75,7 +84,7 @@ export function apply(ctx: Context, config: IConfig) {
                 }
 
                 // 随机聊天奖励（在平时的聊天中，可以15%的几率为上一个说话的群友随机触发1～10点的积分奖励）
-                if (Math.random() < 0.15 && config.RandomChatRewards) {
+                if (Math.random() < config.RandomChatProbability && config.RandomChatRewards) {
                     let num = randomInt(config.RandomChatRewardsMinIntegral, config.RandomChatRewardsMaxIntegral)
                     let new_integral = player[0].integral + num
                     ctx.database.set('cpol_player_list', [session.userId], { integral: new_integral })

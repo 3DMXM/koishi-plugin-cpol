@@ -1,7 +1,8 @@
 import { Context, h, Schema, Session, sleep, Time } from 'koishi'
-import { IConfig } from './Interfaces';
+import { IConfig, ICPoL } from './Interfaces';
 import { CPolModel } from './model';
 import { randomInt } from 'crypto';
+import { CPolDb } from './db'
 
 
 
@@ -9,18 +10,25 @@ import { randomInt } from 'crypto';
 export function CPoLCmd(ctx: Context, config: IConfig) {
 
     // 创建角色
-    ctx.command('cpol', '语 C 角色管理').subcommand('创建角色 <Character>', '如：创建角色 碧蓝幻想丨娜露梅丨女', { authority: 1, checkArgCount: true }).action(async ({ session }, character) => {
+    ctx.command('cpol', '语 C 角色管理').subcommand('创建角色 <Character>', '如：创建角色 碧蓝幻想丨娜露梅丨女').action(async ({ session }, ...args) => {
         // const [platform, qqnum] = qq.split(':')
+        let character = args.join('|')
         const [game, name, gender] = character.split(/\||\丨/)
 
         if (!game || !name || !gender) {
             return `指令错误, 缺少参数~`
+        } else if (args.length > 2) {
+            console.log(args);
         }
 
-        let checked = await ctx.database.get('cpol_player_list', session.userId)
+        // return `character: ${character}, game: ${game}, name:${name}, gender:${gender}`
+
+        // let checked = await ctx.database.get('cpol_player_list', session.userId)
+        let checked = await CPolDb.get(ctx, session.guildId, { QQ: parseInt(session.userId) })
         if (checked.length > 0) return `你已绑定角色`
 
-        checked = await ctx.database.get('cpol_player_list', { Name: name })
+        // checked = await ctx.database.get('cpol_player_list', { Name: name })
+        checked = await CPolDb.get(ctx, session.guildId, { Name: name })
         if (checked.length > 0) return `角色已存在`
 
         // 角色未存在
@@ -47,7 +55,8 @@ export function CPoLCmd(ctx: Context, config: IConfig) {
 
     // 签到 
     ctx.command('cpol', '语 C 角色管理').subcommand('签到', '每日签到').action(async ({ session }) => {
-        let data = await ctx.database.get('cpol_player_list', session.userId)
+        // let data = await ctx.database.get('cpol_player_list', session.userId)
+        let data = await CPolDb.get(ctx, session.guildId, { QQ: parseInt(session.userId) })
         if (data.length == 0) return `未绑定角色`
 
         let avatarUrl = CPolModel.GetQQAvatarUrl(parseInt(session.userId))
@@ -63,7 +72,8 @@ export function CPoLCmd(ctx: Context, config: IConfig) {
         let random = randomInt(config.SigninMinIntegral, config.SigninMaxIntegral)
 
         let integral = data[0].integral + random
-        await ctx.database.set('cpol_player_list', session.userId, { integral: integral, SigninTime: now })
+        // await ctx.database.set('cpol_player_list', session.userId, { integral: integral, SigninTime: now })
+        await CPolDb.set(ctx, session.guildId, { QQ: parseInt(session.userId) }, { integral: integral, SigninTime: now })
 
         let userinfo = await CPolModel.GetUserInfo(data[0], session)
 
@@ -77,8 +87,9 @@ export function CPoLCmd(ctx: Context, config: IConfig) {
 
 
     // 查看角色
-    ctx.command('cpol', '语 C 角色管理').subcommand('查看角色', '如：查看角色', { authority: 1, checkArgCount: true }).action(async ({ session }) => {
-        let data = await ctx.database.get('cpol_player_list', session.userId)
+    ctx.command('cpol', '语 C 角色管理').subcommand('查看角色', '如：查看角色').action(async ({ session }) => {
+        // let data = await ctx.database.get('cpol_player_list', session.userId)
+        let data = await CPolDb.get(ctx, session.guildId, { QQ: parseInt(session.userId) })
 
         if (data.length == 0) return `你还未绑定角色`
 
@@ -88,12 +99,14 @@ export function CPoLCmd(ctx: Context, config: IConfig) {
     })
 
     // 解绑角色
-    ctx.command('cpol', '语 C 角色管理').subcommand('解绑角色', '如：解绑角色', { authority: 1, checkArgCount: true }).action(async ({ session }) => {
-        let data = await ctx.database.get('cpol_player_list', session.userId)
+    ctx.command('cpol', '语 C 角色管理').subcommand('解绑角色', '如：解绑角色').action(async ({ session }) => {
+        // let data = await ctx.database.get('cpol_player_list', session.userId)
+        let data = await CPolDb.get(ctx, session.guildId, { QQ: parseInt(session.userId) })
 
         if (data.length == 0) return `你还未绑定角色`
 
-        await ctx.database.remove('cpol_player_list', session.userId)
+        // await ctx.database.remove('cpol_player_list', session.userId)
+        await ctx.database.remove('cpol_player_list', { QQ: parseInt(session.userId) })
         session.onebot.setGroupCard(
             session.guildId,
             session.userId,
@@ -106,9 +119,10 @@ export function CPoLCmd(ctx: Context, config: IConfig) {
 
     // 草群友
     if (config.Fack) {
-        ctx.command('cpol', '语 C 角色管理').subcommand('草群友', '如：草群友', { authority: 1, checkArgCount: true }).action(async ({ session }) => {
+        ctx.command('cpol', '语 C 角色管理').subcommand('草群友 <qq:user>', '如：草群友 @user(指定群友) 不@则随机').action(async ({ session }, qq) => {
 
-            let me = await ctx.database.get('cpol_player_list', session.userId)
+            // let me = await ctx.database.get('cpol_player_list', session.userId)
+            let me = await CPolDb.get(ctx, session.guildId, { QQ: parseInt(session.userId) })
 
             if (me.length == 0) return `你当前未绑定角色`
 
@@ -120,16 +134,25 @@ export function CPoLCmd(ctx: Context, config: IConfig) {
             if (integral < 0) integral = 0
 
 
-            await ctx.database.set('cpol_player_list', session.userId, { integral: integral })
 
 
-            let userlist = await ctx.database.get('cpol_player_list', {
-                id: { $ne: parseInt(session.userId) },
-            })
+            let you: ICPoL
 
-            // 从 userlist 中随机获取一位
-            let random = Math.floor(Math.random() * userlist.length)
-            let you = userlist[random]
+            if (qq) {
+                const [platform, qqnum] = qq?.split(':')
+                you = (await CPolDb.get(ctx, session.guildId, { QQ: parseInt(qqnum) }))?.[0]
+                if (!you) return `对方未绑定角色`
+            } else {
+                // let userlist = await ctx.database.get('cpol_player_list', {
+                //     id: { $ne: parseInt(session.userId) },
+                // })
+                let userlist = await CPolDb.get(ctx, session.guildId, { QQ: { $ne: parseInt(session.userId) } })
+                // 从 userlist 中随机获取一位
+                let random = Math.floor(Math.random() * userlist.length)
+                you = userlist[random]
+            }
+
+
 
 
             let msg = ``
@@ -152,6 +175,11 @@ export function CPoLCmd(ctx: Context, config: IConfig) {
                 }
             }
             session.send(`${msg}\n本次操作消耗 ${config.FackIntegral} 积分`)
+
+            // await ctx.database.set('cpol_player_list', session.userId, { integral: integral })
+            CPolDb.set(ctx, session.guildId, { QQ: parseInt(session.userId) }, { integral: integral, Fack: me[0].Fack + 1 })
+            CPolDb.set(ctx, session.guildId, { QQ: you.QQ }, { BeFack: you.BeFack + 1 })
+
         })
     }
 
@@ -286,6 +314,55 @@ ${h('at', { id: you[0].QQ })}是否愿意与${h('at', { id: me[0].QQ })}百合�
 [结婚天数]: ${days}天
         `)
     })
+
+    // 排行榜
+    ctx.command('cpol', '语 C 角色管理').subcommand('排行榜', '如：排行榜').action(async ({ session }) => {
+        // let data = await ctx.database.get('cpol_player_list', { guildId: session.guildId })
+        let data = await CPolDb.get(ctx, session.guildId, {})
+        if (data.length == 0) return `当前群内没有角色`
+
+        let rank = data.sort((a, b) => b.integral - a.integral).slice(0, 10)
+
+        let msg = ``
+        rank.forEach((item, index) => {
+            msg += `${index + 1}. ${item.Game}丨${item.Name} ${item.integral}积分\n`
+        })
+
+        session.send(`当前群内积分排行榜(前十)\n${msg}`)
+    })
+
+    // 草人排行榜
+    ctx.command('cpol', '语 C 角色管理').subcommand('草人排行榜', '如：草人排行榜').action(async ({ session }) => {
+        // let data = await ctx.database.get('cpol_player_list', { guildId: session.guildId })
+        let data = await CPolDb.get(ctx, session.guildId, {})
+        if (data.length == 0) return `当前群内没有角色`
+
+        let rank = data.sort((a, b) => b.Fack - a.Fack).slice(0, 10)
+
+        let msg = ``
+        rank.forEach((item, index) => {
+            msg += `${index + 1}. ${item.Game}丨${item.Name} ${item.Fack}次\n`
+        })
+
+        session.send(`当前群内草人排行榜(前十)\n${msg}`)
+    })
+
+    // 被草人排行榜
+    ctx.command('cpol', '语 C 角色管理').subcommand('被人草排行榜', '如：被草人排行榜').action(async ({ session }) => {
+        // let data = await ctx.database.get('cpol_player_list', { guildId: session.guildId })
+        let data = await CPolDb.get(ctx, session.guildId, {})
+        if (data.length == 0) return `当前群内没有角色`
+
+        let rank = data.sort((a, b) => b.BeFack - a.BeFack).slice(0, 10)
+
+        let msg = ``
+        rank.forEach((item, index) => {
+            msg += `${index + 1}. ${item.Game}丨${item.Name} ${item.BeFack}次\n`
+        })
+
+        session.send(`当前群内被人草排行榜(前十)\n${msg}`)
+    })
+
 }
 
 

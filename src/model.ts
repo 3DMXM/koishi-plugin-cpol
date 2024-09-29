@@ -28,6 +28,8 @@ ${h('img', { src: avatarUrl })}
 作品名: ${user.Game}
 角色名: ${user.Name}
 性别: ${user.gender == 1 ? '男' : '女'}
+草群友次数； ${user.Fack}
+被群友草次数: ${user.BeFack}
 婚姻状态: ${user.Married ? '已婚' : '未婚'}
 ${user.Married ? '配偶: ' + (Spouse.card ? Spouse.card : Spouse.nickname) : ''}`
     }

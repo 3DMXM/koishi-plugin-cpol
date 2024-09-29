@@ -2,12 +2,13 @@ import { Context, h, Schema, sleep } from 'koishi'
 import { IConfig } from './Interfaces';
 import { randomInt } from 'crypto'
 import { CPolModel } from './model';
+import { CPolDb } from './db'
 
 const managerAhority = {
-    '管理员': 4,
-    '群主': 5,
+    '机器人主人': 255,
+    '超管': 4,
+    '副管理': 3,
     '群员': 1,
-    '超级管理员': 255
 }
 
 
@@ -16,7 +17,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
     //#region 管理员权限
 
     // 设置机器人管理
-    ctx.command('admin', '群管理工具').subcommand('添加超管 <qq:user>', '如：添加超管 @user(前需要空格)', { authority: managerAhority.超级管理员, checkArgCount: true }).action(async ({ session }, qq) => {
+    ctx.command('admin', '群管理工具').subcommand('添加超管 <qq:user>', '如：添加超管 @user(前需要空格)', { authority: managerAhority.机器人主人, checkArgCount: true }).action(async ({ session }, qq) => {
         const [platform, qqnum] = qq.split(':')
 
         // let { aid } = (await ctx.database.get('binding', { pid: qqnum }))[0]
@@ -27,7 +28,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
     })
 
     // 取消机器人管理
-    ctx.command('admin', '群管理工具').subcommand('取消超管 <qq:user>', '如：取消超管 @user(前需要空格)', { authority: managerAhority.超级管理员, checkArgCount: true }).action(async ({ session }, qq) => {
+    ctx.command('admin', '群管理工具').subcommand('取消超管 <qq:user>', '如：取消超管 @user(前需要空格)', { authority: managerAhority.机器人主人, checkArgCount: true }).action(async ({ session }, qq) => {
         const [platform, qqnum] = qq.split(':')
 
         let { aid } = (await ctx.database.get('binding', { pid: qqnum }))[0]
@@ -39,7 +40,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
 
 
     // 升为管理
-    ctx.command('admin', '群管理工具').subcommand('升为管理 <qq:user>', '如：取消管理 @user(前需要空格)', { authority: managerAhority.管理员, checkArgCount: true }).action(async ({ session }, qq) => {
+    ctx.command('admin', '群管理工具').subcommand('升为管理 <qq:user>', '如：取消管理 @user(前需要空格)', { authority: managerAhority.超管, checkArgCount: true }).action(async ({ session }, qq) => {
         const [platform, qqnum] = qq.split(':')
         session.onebot.setGroupAdmin(
             session.guildId,
@@ -51,7 +52,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
     })
 
     // 取消管理
-    ctx.command('admin', '群管理工具').subcommand('取消管理 <qq:user>', '如：取消管理 @user(前需要空格)', { authority: managerAhority.管理员, checkArgCount: true }).action(async ({ session }, qq) => {
+    ctx.command('admin', '群管理工具').subcommand('取消管理 <qq:user>', '如：取消管理 @user(前需要空格)', { authority: managerAhority.超管, checkArgCount: true }).action(async ({ session }, qq) => {
         const [platform, qqnum] = qq.split(':')
         session.onebot.setGroupAdmin(
             session.guildId,
@@ -62,7 +63,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
     })
 
     // 设置禁言
-    ctx.command('admin', '群管理工具').subcommand('禁言 <qq:user>  <duration:number> <type>', '如：禁言 @user(前需要空格) 1 分钟', { authority: managerAhority.管理员, checkArgCount: true }).action(async ({ session }, qq, duration, type) => {
+    ctx.command('admin', '群管理工具').subcommand('禁言 <qq:user>  <duration:number> <type>', '如：禁言 @user(前需要空格) 1 分钟', { authority: managerAhority.超管, checkArgCount: true }).action(async ({ session }, qq, duration, type) => {
         const [platform, qqnum] = qq.split(':')
 
         switch (type) {
@@ -94,7 +95,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
     })
 
     // 解除禁言
-    ctx.command('admin', '群管理工具').subcommand('解除禁言 <qq:user>', '如：解除禁言 @user(前需要空格)', { authority: managerAhority.管理员, checkArgCount: true }).action(({ session }, qq) => {
+    ctx.command('admin', '群管理工具').subcommand('解除禁言 <qq:user>', '如：解除禁言 @user(前需要空格)', { authority: managerAhority.超管, checkArgCount: true }).action(({ session }, qq) => {
         const [platform, qqnum] = qq.split(':')
         session.onebot.setGroupBan(
             session.guildId,
@@ -105,7 +106,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
     })
 
     // 设置群组名片
-    ctx.command('admin', '群管理工具').subcommand('设置名片 <qq:user> <card>', '如：设置名片 @user 新人', { authority: managerAhority.管理员, checkArgCount: true }).action(async ({ session }, qq, card) => {
+    ctx.command('admin', '群管理工具').subcommand('设置名片 <qq:user> <card>', '如：设置名片 @user 新人', { authority: managerAhority.超管, checkArgCount: true }).action(async ({ session }, qq, card) => {
         const [platform, qqnum] = qq.split(':')
         session.onebot.setGroupCard(
             session.guildId,
@@ -116,7 +117,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
     })
 
     // 踢出
-    ctx.command('admin', '群管理工具').subcommand('踢出 <qq:user>', '如：踢出 @user(前需要空格)', { authority: managerAhority.管理员, checkArgCount: true }).action(async ({ session }, qq) => {
+    ctx.command('admin', '群管理工具').subcommand('踢出 <qq:user>', '如：踢出 @user(前需要空格)', { authority: managerAhority.超管, checkArgCount: true }).action(async ({ session }, qq) => {
         const [platform, qqnum] = qq.split(':')
         session.onebot.setGroupKick(
             session.guildId,
@@ -129,7 +130,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
     })
 
     // 设置精华消息
-    ctx.command('admin', '群管理工具').subcommand('设为精华', '回复一条消息 设为精华', { captureQuote: true, authority: managerAhority.管理员 }).action(async ({ session }) => {
+    ctx.command('admin', '群管理工具').subcommand('设为精华', '回复一条消息 设为精华', { captureQuote: true, authority: managerAhority.超管 }).action(async ({ session }) => {
 
         // console.log(session);
 
@@ -144,7 +145,7 @@ export function AdminCmd(ctx: Context, config: IConfig) {
     })
 
     // 撤回
-    ctx.command('admin', '群管理工具').subcommand('撤回', '回复一条消息 撤回', { authority: managerAhority.管理员 })
+    ctx.command('admin', '群管理工具').subcommand('撤回', '回复一条消息 撤回', { authority: managerAhority.超管 })
         .action(async ({ session }) => {
             if (session.quote) {
                 await session.onebot.deleteMsg(
@@ -163,30 +164,35 @@ export function AdminCmd(ctx: Context, config: IConfig) {
 
 
     // 扣积分
-    ctx.command('admin', '群管理工具').subcommand('扣积分 <qq:user> <integral:number>', '如：扣积分 @user 5', { authority: managerAhority.管理员, checkArgCount: true }).action(async ({ session }, qq, integral) => {
+    ctx.command('admin', '群管理工具').subcommand('扣积分 <qq:user> <integral:number>', '如：扣积分 @user 5', { authority: managerAhority.超管, checkArgCount: true }).action(async ({ session }, qq, integral) => {
         const [platform, qqnum] = qq.split(':')
-        let data = await ctx.database.get('cpol_player_list', qqnum)
+        // let data = await ctx.database.get('cpol_player_list', qqnum)
+        let data = await CPolDb.get(ctx, session.guildId, { QQ: qqnum })
         if (data.length == 0) return `未找到用户`
         let nowIntegral = data[0].integral - integral
-        await ctx.database.set('cpol_player_list', qqnum, { integral: nowIntegral })
+        // await ctx.database.set('cpol_player_list', qqnum, { integral: nowIntegral })
+        CPolDb.set(ctx, session.guildId, { QQ: qqnum }, { integral: nowIntegral })
 
         session.send(`${h('at', { id: qqnum })} 被扣除了 ${integral} 积分，现有积分 ${nowIntegral}`)
     })
 
     // 加积分
-    ctx.command('admin', '群管理工具').subcommand('加积分 <qq:user> <integral:number>', '如：加积分 @user 5', { authority: managerAhority.管理员, checkArgCount: true }).action(async ({ session }, qq, integral) => {
+    ctx.command('admin', '群管理工具').subcommand('加积分 <qq:user> <integral:number>', '如：加积分 @user 5', { authority: managerAhority.超管, checkArgCount: true }).action(async ({ session }, qq, integral) => {
         const [platform, qqnum] = qq.split(':')
-        let data = await ctx.database.get('cpol_player_list', qqnum)
+        // let data = await ctx.database.get('cpol_player_list', qqnum)
+        let data = await CPolDb.get(ctx, session.guildId, { QQ: qqnum })
         if (data.length == 0) return `未找到用户`
         let nowIntegral = data[0].integral + integral
-        await ctx.database.set('cpol_player_list', qqnum, { integral: nowIntegral })
+        // await ctx.database.set('cpol_player_list', qqnum, { integral: nowIntegral })
+        CPolDb.set(ctx, session.guildId, { QQ: qqnum }, { integral: nowIntegral })
 
         session.send(`${h('at', { id: qqnum })} 被奖励了 ${integral} 积分，现有积分 ${nowIntegral}`)
     })
 
     // 获取玩家列表
-    ctx.command('admin', '群管理工具').subcommand('玩家列表', '获取玩家列表', { authority: managerAhority.管理员 }).action(async ({ session }) => {
-        let playerList = await ctx.database.get('cpol_player_list', {})
+    ctx.command('admin', '群管理工具').subcommand('玩家列表', '获取玩家列表', { authority: managerAhority.超管 }).action(async ({ session }) => {
+        // let playerList = await ctx.database.get('cpol_player_list', {})
+        let playerList = await CPolDb.get(ctx, session.guildId, {})
         if (playerList.length == 0) return '暂无玩家'
 
         let str = ''
