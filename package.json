@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-cpol",
   "description": "语言角色扮演 (语C) 管理插件",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "contributors": [

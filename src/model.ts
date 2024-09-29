@@ -1,6 +1,7 @@
 import { Session, Context, h } from "koishi";
 import { ICPoL } from "./Interfaces";
-import { GroupMemberInfo } from "@satorijs/adapter-onebot/lib/types";
+import { GroupMemberInfo } from "koishi-plugin-adapter-onebot/lib/types";
+
 
 export class CPolModel {
     /**

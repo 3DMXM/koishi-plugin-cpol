@@ -1,5 +1,5 @@
 import { Context, h, Schema, Session } from 'koishi'
-import { } from '@koishijs/plugin-adapter-onebot'
+import { } from 'koishi-plugin-adapter-onebot'
 
 import { AdminCmd } from './admin'
 import { CPoLCmd } from './CPoL'
@@ -43,7 +43,10 @@ export function apply(ctx: Context, config: IConfig) {
     // write your plugin here
 
     ctx.model.extend('cpol_player_list', {
-        id: 'unsigned',
+        id: {
+            type: 'integer',
+            nullable: false,
+        },
         guildId: 'unsigned',
         QQ: 'unsigned',
         integral: 'unsigned',
@@ -63,6 +66,10 @@ export function apply(ctx: Context, config: IConfig) {
             type: 'integer',
             initial: 0
         }
+    }, {
+        primary: 'id',
+        autoInc: true,
+        unique: ['id'],
     })
 
     ctx.middleware(async (session, next) => {

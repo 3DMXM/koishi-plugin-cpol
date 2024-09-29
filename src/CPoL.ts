@@ -17,8 +17,6 @@ export function CPoLCmd(ctx: Context, config: IConfig) {
 
         if (!game || !name || !gender) {
             return `指令错误, 缺少参数~`
-        } else if (args.length > 2) {
-            console.log(args);
         }
 
         // return `character: ${character}, game: ${game}, name:${name}, gender:${gender}`
@@ -33,7 +31,7 @@ export function CPoLCmd(ctx: Context, config: IConfig) {
 
         // 角色未存在
         let data = await ctx.database.create('cpol_player_list', {
-            id: parseInt(session.userId),
+            // id: parseInt(session.userId),
             guildId: parseInt(session.guildId),
             QQ: parseInt(session.userId),
             integral: config.DefaultIntegral,
