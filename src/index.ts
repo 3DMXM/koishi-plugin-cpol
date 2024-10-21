@@ -7,6 +7,7 @@ import { CPoLCmd } from './CPoL'
 import type { IConfig, ICPoL } from './Interfaces'
 import { randomInt } from 'crypto';
 import { CPolModel } from './model'
+import { CPolDb } from './db'
 
 
 
@@ -81,7 +82,8 @@ export function apply(ctx: Context, config: IConfig) {
                 CPolModel.SetAuthority(ctx, session.userId, 255)
             }
 
-            let player = await ctx.database.get('cpol_player_list', [session.userId])
+            // let player = await ctx.database.get('cpol_player_list', [session.userId])
+            let player = await CPolDb.get(ctx, session.guildId, { QQ: session.userId })
             if (player.length > 0) {
                 // 如果用户已经绑定了角色 
                 let { card } = await session.onebot.getGroupMemberInfo(session.guildId, session.userId, true)
@@ -94,7 +96,8 @@ export function apply(ctx: Context, config: IConfig) {
                 if (Math.random() < config.RandomChatProbability && config.RandomChatRewards) {
                     let num = randomInt(config.RandomChatRewardsMinIntegral, config.RandomChatRewardsMaxIntegral)
                     let new_integral = player[0].integral + num
-                    ctx.database.set('cpol_player_list', [session.userId], { integral: new_integral })
+                    // ctx.database.set('cpol_player_list', [session.userId], { integral: new_integral })
+                    CPolDb.set(ctx, session.guildId, { QQ: session.userId }, { integral: new_integral })
                     session.send(`恭喜 ${h('at', { id: session.userId })} 在聊天时获得了${num}积分`)
                 }
 
