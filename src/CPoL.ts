@@ -30,9 +30,18 @@ export function CPoLCmd(ctx: Context, config: IConfig) {
         if (checked.length > 0) return `角色已存在`
 
         // 角色未存在
-        let data = await ctx.database.create('cpol_player_list', {
-            // id: parseInt(session.userId),
-            guildId: parseInt(session.guildId),
+        // let data = await ctx.database.create('cpol_player_list', {
+        //     // id: parseInt(session.userId),
+        //     guildId: parseInt(session.guildId),
+        //     QQ: parseInt(session.userId),
+        //     integral: config.DefaultIntegral,
+        //     Game: game,
+        //     Name: name,
+        //     authority: 1,
+        //     Married: false,
+        //     gender: gender == '男' ? 1 : 2
+        // })
+        let data = await CPolDb.create(ctx, session.guildId, {
             QQ: parseInt(session.userId),
             integral: config.DefaultIntegral,
             Game: game,
@@ -104,7 +113,8 @@ export function CPoLCmd(ctx: Context, config: IConfig) {
         if (data.length == 0) return `你还未绑定角色`
 
         // await ctx.database.remove('cpol_player_list', session.userId)
-        await ctx.database.remove('cpol_player_list', { QQ: parseInt(session.userId) })
+        // await ctx.database.remove('cpol_player_list', { QQ: parseInt(session.userId) })
+        await CPolDb.remove(ctx, session.guildId, { QQ: parseInt(session.userId) })
         session.onebot.setGroupCard(
             session.guildId,
             session.userId,
@@ -185,9 +195,11 @@ export function CPoLCmd(ctx: Context, config: IConfig) {
     ctx.command('cpol', '语 C 角色管理').subcommand('求婚 <qq:user>', '如：求婚 @user',).action(async ({ session }, qq) => {
         const [platform, qqnum] = qq.split(':')
 
-        let me = await ctx.database.get('cpol_player_list', session.userId)
+        // let me = await ctx.database.get('cpol_player_list', session.userId)
+        let me = await CPolDb.get(ctx, session.guildId, { QQ: parseInt(session.userId) })
         if (me.length == 0) return `你当前未绑定角色`
-        let you = await ctx.database.get('cpol_player_list', qqnum)
+        // let you = await ctx.database.get('cpol_player_list', qqnum)
+        let you = await CPolDb.get(ctx, session.guildId, { QQ: parseInt(qqnum) })
         if (you.length == 0) return `对方未绑定角色`
 
         if (session.userId == qqnum) return `不能向自己求婚`
@@ -242,8 +254,10 @@ ${h('at', { id: you[0].QQ })}是否愿意与${h('at', { id: me[0].QQ })}百合�
                 let time = new Date()
                 // console.log(time);
 
-                ctx.database.set('cpol_player_list', me[0].id, { Married: true, Spouse: you[0].id, MarriedTime: time })
-                ctx.database.set('cpol_player_list', you[0].id, { Married: true, Spouse: me[0].id, MarriedTime: time })
+                // ctx.database.set('cpol_player_list', me[0].id, { Married: true, Spouse: you[0].id, MarriedTime: time })
+                // ctx.database.set('cpol_player_list', you[0].id, { Married: true, Spouse: me[0].id, MarriedTime: time })
+                CPolDb.set(ctx, session.guildId, { QQ: me[0].id }, { Married: true, Spouse: you[0].id, MarriedTime: time })
+                CPolDb.set(ctx, session.guildId, { QQ: you[0].id }, { Married: true, Spouse: me[0].id, MarriedTime: time })
                 session.send(msg2)
             } else if (content == '不愿意') {
                 dispose()
@@ -258,11 +272,13 @@ ${h('at', { id: you[0].QQ })}是否愿意与${h('at', { id: me[0].QQ })}百合�
 
     // 离婚
     ctx.command('cpol', '语 C 角色管理').subcommand('离婚', '如：离婚',).action(async ({ session }) => {
-        let me = await ctx.database.get('cpol_player_list', session.userId)
+        // let me = await ctx.database.get('cpol_player_list', session.userId)
+        let me = await CPolDb.get(ctx, session.guildId, { QQ: parseInt(session.userId) })
         if (me.length == 0) return `你当前未绑定角色`
         if (!me[0].Married) return `你当前未结婚`
 
-        let you = await ctx.database.get('cpol_player_list', me[0].Spouse)
+        // let you = await ctx.database.get('cpol_player_list', me[0].Spouse)
+        let you = await CPolDb.get(ctx, session.guildId, { QQ: me[0].Spouse })
         if (you.length == 0) return `对方未绑定角色`
 
         let timeoutId: NodeJS.Timeout
@@ -273,8 +289,10 @@ ${h('at', { id: you[0].QQ })}是否愿意与${h('at', { id: me[0].QQ })}百合�
             if (content == '我愿意') {
                 dispose()
                 clearTimeout(timeoutId)
-                ctx.database.set('cpol_player_list', me[0].id, { Married: false, Spouse: 0, MarriedTime: null })
-                ctx.database.set('cpol_player_list', you[0].id, { Married: false, Spouse: 0, MarriedTime: null })
+                // ctx.database.set('cpol_player_list', me[0].id, { Married: false, Spouse: 0, MarriedTime: null })
+                // ctx.database.set('cpol_player_list', you[0].id, { Married: false, Spouse: 0, MarriedTime: null })
+                CPolDb.set(ctx, session.guildId, { QQ: me[0].id }, { Married: false, Spouse: 0, MarriedTime: null })
+                CPolDb.set(ctx, session.guildId, { QQ: you[0].id }, { Married: false, Spouse: 0, MarriedTime: null })
                 session.send(`${h('at', { id: me[0].id })} 和 ${h('at', { id: you[0].id })} 离婚啦~`)
             } else if (content == '我拒绝') {
                 dispose()
@@ -291,11 +309,13 @@ ${h('at', { id: you[0].QQ })}是否愿意与${h('at', { id: me[0].QQ })}百合�
 
     // 结婚证 
     ctx.command('cpol', '语 C 角色管理').subcommand('结婚证', '如：结婚证',).action(async ({ session }) => {
-        let me = await ctx.database.get('cpol_player_list', session.userId)
+        // let me = await ctx.database.get('cpol_player_list', session.userId)
+        let me = await CPolDb.get(ctx, session.guildId, { QQ: parseInt(session.userId) })
         if (me.length == 0) return `你当前未绑定角色`
         if (!me[0].Married) return `你当前未结婚`
 
-        let you = await ctx.database.get('cpol_player_list', me[0].Spouse)
+        // let you = await ctx.database.get('cpol_player_list', me[0].Spouse)
+        let you = await CPolDb.get(ctx, session.guildId, { QQ: me[0].Spouse })
         if (you.length == 0) return `对方未绑定角色`
 
         let meavatar = CPolModel.GetQQAvatarUrl(me[0].QQ)

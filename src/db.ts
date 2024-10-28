@@ -16,6 +16,13 @@ export class CPolDb {
         }, data)
     }
 
+    static create(ctx: Context, groupID: string, data: any) {
+        return ctx.database.create('cpol_player_list', {
+            ...data,
+            guildId: groupID
+        })
+    }
+
     static remove(ctx: Context, groupID: string, filter: any) {
         return ctx.database.remove('cpol_player_list', {
             ...filter,
